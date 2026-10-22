@@ -1,0 +1,12 @@
+[submodule "ext/libDaisy"]
+	path = ext/libDaisy
+	url = https://github.com/electro-smith/libDaisy
+[submodule "ext/DaisySP"]
+	path = ext/DaisySP
+	url = https://github.com/electro-smith/DaisySP
+[submodule "ext/imgui"]
+	path = ext/imgui
+	url = https://github.com/ocornut/imgui
+[submodule "ext/miniaudio"]
+	path = ext/miniaudio
+	url = https://github.com/mackron/miniaudio
