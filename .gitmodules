@@ -1,6 +1,3 @@
-[submodule "ext/libDaisy"]
-	path = ext/libDaisy
-	url = https://github.com/electro-smith/libDaisy
 [submodule "ext/DaisySP"]
 	path = ext/DaisySP
 	url = https://github.com/electro-smith/DaisySP

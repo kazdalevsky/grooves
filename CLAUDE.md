@@ -1,18 +1,24 @@
-# Groovebox (Daisy Seed, Cortex-M7)
+# Groovebox (Raspberry Pi Zero 2 W / Pi 3, Linux)
+
+Платформа: Cortex-A53 x4, 512 МБ (Zero 2) / 1 ГБ (Pi 3), Raspberry Pi OS Lite 64-bit.
+Звук: I2S DAC (напр. PCM5102) или USB-аудио через ALSA; у Zero 2 нет аналогового выхода.
+Разработка на ПК, кросс-сборка под aarch64 или нативная сборка на самой плате.
 
 ## Структура
-- core/ — движок (секвенсор, голоса, микшер), без зависимости от libDaisy
+- core/ — движок (секвенсор, голоса, микшер): чистый C++, без Linux/GPIO/аудио API
 - hal/ — интерфейсы: AudioIO, Controls, Display, Storage, Clock
-- host/ — десктоп: miniaudio, RtMidi, ImGui+SDL2
-- target_daisy/ — реализация поверх libDaisy, Makefile
-- tests/ — doctest + offline-рендер WAV
-- ext/ — submodules (libDaisy, DaisySP, imgui, miniaudio)
+- host/ — ПК: miniaudio, RtMidi, ImGui+SDL2, offline-рендер WAV
+- target_pi/ — реализация для Pi (ALSA/miniaudio, GPIO, I2C/SPI дисплей), toolchain-файлы
+- tests/ — doctest
+- ext/ — submodules (DaisySP как DSP-библиотека, imgui, miniaudio)
 
 ## Сборка и тесты
 - Host: `cmake -S . -B build -G Ninja && cmake --build build && ctest --test-dir build`
-- Sanitizers: отдельная конфигурация с `-fsanitize=address,undefined`
-- ARM-проверка core/: `-mcpu=cortex-m7 -mthumb -mfpu=fpv5-d16 -mfloat-abi=hard`, затем `arm-none-eabi-size`
+- Sanitizers: `-DGROOVE_SANITIZE=ON`
+- Pi (кросс): `cmake -S . -B build-pi -G Ninja -DCMAKE_TOOLCHAIN_FILE=target_pi/toolchain-aarch64.cmake`
+  (нужен пакет `g++-aarch64-linux-gnu`)
 
-## Реалтайм-правила (аудио-callback)
-Без malloc/new, исключений, блокировок (mutex), printf и системных вызовов.
-Сэмплы и длинные буферы — в SDRAM (64 МБ). Держать запас по CPU: Cortex-M7 480 МГц слабее ПК.
+## Реалтайм-правила (аудио-поток)
+Без malloc/new, исключений, мьютексов, printf, файлового ввода-вывода в аудио-callback.
+Связь с UI/MIDI — через lock-free очереди. Поток аудио: SCHED_FIFO, mlockall.
+Буфер 64-128 фреймов при 48 кГц; при xrun-ах — isolcpus и performance governor.
